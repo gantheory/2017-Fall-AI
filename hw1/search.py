@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from game import Directions
 
 class SearchProblem:
     """
@@ -72,6 +73,38 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+def generalSearch(problem, strategy):
+    start_state = problem.getStartState()
+    strategy.push(start_state)
+    visit = dict()
+    visit[start_state] = 'start'
+    while not strategy.isEmpty():
+        now_state = strategy.pop()
+        if problem.isGoalState(now_state):
+            actions = []
+            while now_state != start_state:
+                now_directions = visit[now_state]
+                actions.append(now_directions)
+                now_state = list(now_state)
+                if now_directions == Directions.NORTH:
+                    now_state[1] -= 1
+                elif now_directions == Directions.SOUTH:
+                    now_state[1] += 1
+                elif now_directions == Directions.EAST:
+                    now_state[0] -= 1
+                elif now_directions == Directions.WEST:
+                    now_state[0] += 1
+                now_state = tuple(now_state)
+            return actions[::-1]
+        successors = problem.getSuccessors(now_state)
+        for successor in successors:
+            # successor: (nextState, action, cost)
+            if successor[0] in visit:
+                continue
+            visit[successor[0]] = successor[1]
+            strategy.push(successor[0])
+    raise ValueError("Solution Not Found")
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -87,7 +120,8 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    stack = util.Stack()
+    return generalSearch(problem, stack)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
