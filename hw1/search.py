@@ -18,7 +18,6 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
-from game import Directions
 
 class SearchProblem:
     """
@@ -74,40 +73,33 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def generalSearch(problem, strategy, heuristic=None):
-    start_state = (problem.getStartState(), 0)
-    strategy.push(start_state)
+    if heuristic == None:
+        def heuristic(state, problem):
+            return 0
+    start_states = (problem.getStartState(), 0)
+    strategy.push(start_states)
     visit = dict()
-    visit[problem.getStartState()] = 'start'
+    visit[problem.getStartState()] = ('dummy_state', 'dummy_action')
     while not strategy.isEmpty():
-        now_state, cost = strategy.pop()
-        if heuristic != None:
-            cost -= heuristic(now_state, problem)
+        now_state, now_cost = strategy.pop()
+        now_cost -= heuristic(now_state, problem)
+
         if problem.isGoalState(now_state):
             actions = []
             while now_state != problem.getStartState():
-                prev_action = visit[now_state]
-                actions.append(prev_action)
-                now_state = list(now_state)
-                if prev_action == Directions.NORTH:
-                    now_state[1] -= 1
-                elif prev_action == Directions.SOUTH:
-                    now_state[1] += 1
-                elif prev_action == Directions.EAST:
-                    now_state[0] -= 1
-                elif prev_action == Directions.WEST:
-                    now_state[0] += 1
-                now_state = tuple(now_state)
+                now_state, prv_action = visit[now_state]
+                actions.append(prv_action)
             return actions[::-1]
+
         successors = problem.getSuccessors(now_state)
         for successor in successors:
-            # successor: (nextState, action, cost)
-            now = [successor[0], cost + successor[2]]
-            if heuristic != None:
-                now[1] += heuristic(successor[0], problem)
-            now = tuple(now)
-            if successor[0] in visit:
+            nextState = successor[0]
+            prv_action = successor[1]
+            one_step_cost = successor[2]
+            if nextState in visit:
                 continue
-            visit[successor[0]] = successor[1]
+            visit[nextState] = (now_state, prv_action)
+            now = (nextState, now_cost + one_step_cost + heuristic(nextState, problem))
             strategy.push(now)
     raise ValueError("Solution Not Found")
 
