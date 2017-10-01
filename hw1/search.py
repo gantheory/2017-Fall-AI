@@ -73,13 +73,15 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def generalSearch(problem, strategy):
+def generalSearch(problem, strategy, heuristic=None):
     start_state = (problem.getStartState(), 0)
     strategy.push(start_state)
     visit = dict()
     visit[problem.getStartState()] = 'start'
     while not strategy.isEmpty():
         now_state, cost = strategy.pop()
+        if heuristic != None:
+            cost -= heuristic(now_state, problem)
         if problem.isGoalState(now_state):
             actions = []
             while now_state != problem.getStartState():
@@ -99,7 +101,10 @@ def generalSearch(problem, strategy):
         successors = problem.getSuccessors(now_state)
         for successor in successors:
             # successor: (nextState, action, cost)
-            now = (successor[0], cost + successor[2])
+            now = [successor[0], cost + successor[2]]
+            if heuristic != None:
+                now[1] += heuristic(successor[0], problem)
+            now = tuple(now)
             if successor[0] in visit:
                 continue
             visit[successor[0]] = successor[1]
@@ -149,7 +154,11 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def priorityFunction(item):
+        # item: (nextState, cost)
+        return item[1]
+    priorty_queue_with_function = util.PriorityQueueWithFunction(priorityFunction)
+    return generalSearch(problem, priorty_queue_with_function, heuristic)
 
 
 # Abbreviations
