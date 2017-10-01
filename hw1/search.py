@@ -74,35 +74,36 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def generalSearch(problem, strategy):
-    start_state = problem.getStartState()
+    start_state = (problem.getStartState(), 0)
     strategy.push(start_state)
     visit = dict()
-    visit[start_state] = 'start'
+    visit[problem.getStartState()] = 'start'
     while not strategy.isEmpty():
-        now_state = strategy.pop()
+        now_state, cost = strategy.pop()
         if problem.isGoalState(now_state):
             actions = []
-            while now_state != start_state:
-                now_directions = visit[now_state]
-                actions.append(now_directions)
+            while now_state != problem.getStartState():
+                prev_action = visit[now_state]
+                actions.append(prev_action)
                 now_state = list(now_state)
-                if now_directions == Directions.NORTH:
+                if prev_action == Directions.NORTH:
                     now_state[1] -= 1
-                elif now_directions == Directions.SOUTH:
+                elif prev_action == Directions.SOUTH:
                     now_state[1] += 1
-                elif now_directions == Directions.EAST:
+                elif prev_action == Directions.EAST:
                     now_state[0] -= 1
-                elif now_directions == Directions.WEST:
+                elif prev_action == Directions.WEST:
                     now_state[0] += 1
                 now_state = tuple(now_state)
             return actions[::-1]
         successors = problem.getSuccessors(now_state)
         for successor in successors:
             # successor: (nextState, action, cost)
+            now = (successor[0], cost + successor[2])
             if successor[0] in visit:
                 continue
             visit[successor[0]] = successor[1]
-            strategy.push(successor[0])
+            strategy.push(now)
     raise ValueError("Solution Not Found")
 
 def depthFirstSearch(problem):
@@ -132,7 +133,11 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def priorityFunction(item):
+        # item: (nextState, cost)
+        return item[1]
+    priorty_queue_with_function = util.PriorityQueueWithFunction(priorityFunction)
+    return generalSearch(problem, priorty_queue_with_function)
 
 def nullHeuristic(state, problem=None):
     """
