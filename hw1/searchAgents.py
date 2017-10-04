@@ -379,10 +379,14 @@ def cornersHeuristic(state, problem):
     "*** YOUR CODE HERE ***"
     dis = 1e18
     for i in range(4):
+        if state[i + 2] == 1:
+            continue
         x, y = problem.corners[i][0], problem.corners[i][1]
         now_dis = abs(x - state[0]) + abs(y - state[1])
         if now_dis < dis:
             dis = now_dis
+    if dis > 1e17:
+        dis = 0
     return dis
 
 class AStarCornersAgent(SearchAgent):
@@ -477,7 +481,13 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    dis = 1e18
+    for now_state in foodGrid.asList():
+        x, y = now_state[0], now_state[1]
+        now_dis = abs(x - position[0]) + abs(y - position[1])
+        if now_dis < dis:
+            dis = now_dis
+    return dis
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
