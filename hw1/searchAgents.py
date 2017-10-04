@@ -481,11 +481,10 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    dis = 1e18
+    dis = -1
     for now_state in foodGrid.asList():
-        x, y = now_state[0], now_state[1]
-        now_dis = abs(x - position[0]) + abs(y - position[1])
-        if now_dis < dis:
+        now_dis = abs(now_state[0] - position[0]) + abs(now_state[1] - position[1])
+        if dis == -1 or now_dis < dis:
             dis = now_dis
     return dis
 
