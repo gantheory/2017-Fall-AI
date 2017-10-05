@@ -288,6 +288,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.startingGameState = startingGameState
         self.corners_idx = dict()
         self.corners_idx[(1, 1)] = 2
         self.corners_idx[(1, top)] = 3
@@ -377,16 +378,14 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    dis = 1e18
+    dis = 0
+    now_state = (state[0], state[1])
     for i in range(4):
         if state[i + 2] == 1:
             continue
         x, y = problem.corners[i][0], problem.corners[i][1]
-        now_dis = abs(x - state[0]) + abs(y - state[1])
-        if now_dis < dis:
-            dis = now_dis
-    if dis > 1e17:
-        dis = 0
+        now_dis = mazeDistance(now_state, (x, y), problem.startingGameState)
+        dis = max([dis, now_dis])
     return dis
 
 class AStarCornersAgent(SearchAgent):
