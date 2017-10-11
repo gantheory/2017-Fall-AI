@@ -79,18 +79,17 @@ def generalSearch(problem, frontier, heuristic=None, cal_cost=False):
 
     in_frontier = dict()
     visit = dict()
-    heuristic_table = dict()
+    dist = dict()
 
     start_state = problem.getStartState()
-    heuristic_table[start_state] = heuristic(start_state, problem)
-    start_states = (start_state, heuristic_table[start_state])
+    start_states = (start_state, heuristic(start_state, problem))
     frontier.push(start_states)
-    in_frontier[start_state] = start_states[1]
+    in_frontier[start_state] = heuristic(start_state, problem)
     visit[start_state] = ('dummy_state', 'dummy_action')
+    dist[start_state] = 0
 
     while not frontier.isEmpty():
         now_state, now_cost = frontier.pop()
-        now_cost -= heuristic_table[now_state]
         del in_frontier[now_state]
 
         if problem.isGoalState(now_state):
@@ -105,21 +104,21 @@ def generalSearch(problem, frontier, heuristic=None, cal_cost=False):
             nextState = successor[0]
             prv_action = successor[1]
             one_step_cost = successor[2]
-            total_cost = now_cost + one_step_cost
-            if nextState not in heuristic_table:
-                heuristic_table[nextState] = heuristic(nextState, problem)
-            total_cost += heuristic_table[nextState]
+            total_cost = dist[now_state] + one_step_cost + heuristic(nextState, problem)
             if nextState in in_frontier and cal_cost:
                 if total_cost < in_frontier[nextState]:
                     frontier.update((nextState, in_frontier[nextState]), total_cost)
                     in_frontier[nextState] = total_cost
                     visit[nextState] = (now_state, prv_action)
+                    dist[nextState] = dist[now_state] + one_step_cost
+
             if nextState in visit or nextState in in_frontier:
                 continue
-            visit[nextState] = (now_state, prv_action)
-            now = (nextState, total_cost)
-            frontier.push(now)
+
+            frontier.push((nextState, total_cost))
             in_frontier[nextState] = total_cost
+            visit[nextState] = (now_state, prv_action)
+            dist[nextState] = dist[now_state] + one_step_cost
     raise ValueError("Solution Not Found")
 
 def depthFirstSearch(problem):
