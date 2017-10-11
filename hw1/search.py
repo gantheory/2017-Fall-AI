@@ -72,17 +72,23 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def generalSearch(problem, strategy, heuristic=None):
+def generalSearch(problem, frontier, heuristic=None, cal_cost=False):
     if heuristic == None:
         def heuristic(state, problem):
             return 0
-    start_states = (problem.getStartState(), 0)
-    strategy.push(start_states)
+
+    in_frontier = dict()
     visit = dict()
+
+    start_states = (problem.getStartState(), 0)
+    frontier.push(start_states)
+    in_frontier[problem.getStartState()] = 0
     visit[problem.getStartState()] = ('dummy_state', 'dummy_action')
-    while not strategy.isEmpty():
-        now_state, now_cost = strategy.pop()
+
+    while not frontier.isEmpty():
+        now_state, now_cost = frontier.pop()
         now_cost -= heuristic(now_state, problem)
+        del in_frontier[now_state]
 
         if problem.isGoalState(now_state):
             actions = []
@@ -96,11 +102,15 @@ def generalSearch(problem, strategy, heuristic=None):
             nextState = successor[0]
             prv_action = successor[1]
             one_step_cost = successor[2]
-            if nextState in visit:
+            total_cost = now_cost + one_step_cost + heuristic(nextState, problem)
+            if nextState in in_frontier and cal_cost:
+                frontier.update((nextState, in_frontier[nextState]), total_cost)
+            if nextState in visit or nextState in in_frontier:
                 continue
             visit[nextState] = (now_state, prv_action)
-            now = (nextState, now_cost + one_step_cost + heuristic(nextState, problem))
-            strategy.push(now)
+            now = (nextState, total_cost)
+            frontier.push(now)
+            in_frontier[nextState] = total_cost
     raise ValueError("Solution Not Found")
 
 def depthFirstSearch(problem):
@@ -134,7 +144,7 @@ def uniformCostSearch(problem):
         # item: (nextState, cost)
         return item[1]
     priorty_queue_with_function = util.PriorityQueueWithFunction(priorityFunction)
-    return generalSearch(problem, priorty_queue_with_function)
+    return generalSearch(problem, priorty_queue_with_function, None, True)
 
 def nullHeuristic(state, problem=None):
     """
@@ -150,7 +160,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         # item: (nextState, cost)
         return item[1]
     priorty_queue_with_function = util.PriorityQueueWithFunction(priorityFunction)
-    return generalSearch(problem, priorty_queue_with_function, heuristic)
+    return generalSearch(problem, priorty_queue_with_function, heuristic, True)
 
 
 # Abbreviations
