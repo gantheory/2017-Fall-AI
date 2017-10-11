@@ -105,6 +105,9 @@ def generalSearch(problem, frontier, heuristic=None, cal_cost=False):
             total_cost = now_cost + one_step_cost + heuristic(nextState, problem)
             if nextState in in_frontier and cal_cost:
                 frontier.update((nextState, in_frontier[nextState]), total_cost)
+                if total_cost < in_frontier[nextState]:
+                    in_frontier[nextState] = total_cost
+                    visit[nextState] = (now_state, prv_action)
             if nextState in visit or nextState in in_frontier:
                 continue
             visit[nextState] = (now_state, prv_action)
