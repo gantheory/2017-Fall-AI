@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -74,7 +74,34 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        NEXT_FOOD_SCORE = 1000.0
+        NEXT_GHOST_SCORE = -5000.0
+
+        x, y = newPos
+        final_score = 0.0
+        # there is a food in next state
+        now_food_list = currentGameState.getFood().asList()
+        for new_x, new_y in now_food_list:
+            if new_x == x and new_y == y:
+                final_score += NEXT_FOOD_SCORE
+
+        # average manhanttan distance to all foods
+        nxt_food_list = newFood.asList()
+        tmp_score = 0.0
+        for new_x, new_y in nxt_food_list:
+            tmp_score += 1 / float(abs(x - new_x) + abs(y - new_y))
+        if tmp_score > 0.0:
+            tmp_score /= float(len(nxt_food_list))
+        final_score += tmp_score
+
+        # whether there is a ghost in the next state
+        for new_x, new_y in successorGameState.getGhostPositions():
+            dist = int(abs(new_x - x) + abs(new_y - y))
+            if dist <= 2:
+                final_score += NEXT_GHOST_SCORE
+                break
+
+        return final_score
 
 def scoreEvaluationFunction(currentGameState):
     """
