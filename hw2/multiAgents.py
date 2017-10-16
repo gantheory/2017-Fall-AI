@@ -80,17 +80,15 @@ class ReflexAgent(Agent):
         x, y = newPos
         final_score = 0.0
         # there is a food in next state
-        now_food_list = currentGameState.getFood().asList()
-        for new_x, new_y in now_food_list:
-            if new_x == x and new_y == y:
-                final_score += NEXT_FOOD_SCORE
+        if currentGameState.hasFood(x, y):
+            final_score += NEXT_FOOD_SCORE
 
         # average manhanttan distance to all foods
         nxt_food_list = newFood.asList()
         tmp_score = 0.0
         for new_x, new_y in nxt_food_list:
             tmp_score += 1 / float(abs(x - new_x) + abs(y - new_y))
-        if tmp_score > 0.0:
+        if len(nxt_food_list) != 0:
             tmp_score /= float(len(nxt_food_list))
         final_score += tmp_score
 
@@ -138,6 +136,41 @@ class MinimaxAgent(MultiAgentSearchAgent):
       Your minimax agent (question 2)
     """
 
+    def is_terminal_state(self, game_state):
+        return game_state.isWin() or game_state.isLose()
+
+    def utility(self, game_state):
+        return self.evaluationFunction(game_state)
+
+    def minimax(self, game_state, depth, agent_index):
+        if self.is_terminal_state(game_state):
+            return self.utility(game_state)
+
+        if depth == self.depth and agent_index == self.num_of_agents - 1:
+            return self.evaluationFunction(game_state)
+
+        nxt_agent_index = agent_index + 1
+        nxt_depth = depth
+        if nxt_agent_index == self.num_of_agents:
+            nxt_agent_index = 0
+            nxt_depth += 1
+        legal_moves = game_state.getLegalActions(agent_index)
+        scores = []
+        for action in legal_moves:
+            if agent_index == 0 and action == Directions.STOP:
+                scores.append(-5000.0)
+                continue
+            scores.append(
+                self.minimax(
+                    game_state.generateSuccessor(agent_index, action),
+                    nxt_depth,
+                    nxt_agent_index
+                )
+            )
+        if agent_index == 0:
+            return max(scores)
+        return min(scores)
+
     def getAction(self, gameState):
         """
           Returns the minimax action from the current gameState using self.depth
@@ -155,8 +188,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.num_of_agents = gameState.getNumAgents()
+        legal_moves = gameState.getLegalActions()
+        scores = [self.minimax(gameState.generateSuccessor(0, action), 1, 1) \
+                  for action in legal_moves if action != Directions.STOP]
+        best_score = max(scores)
+        print("Initial State Value: ", best_score)
+        best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
+        chosen_index = random.choice(best_indices)
+        return legal_moves[chosen_index]
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
