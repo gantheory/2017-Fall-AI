@@ -2,3 +2,4 @@
 slides/*
 *.pyc
 .zshrc
+.vscode/*
