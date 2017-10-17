@@ -88,14 +88,15 @@ class ReflexAgent(Agent):
         tmp_score = 0.0
         for new_x, new_y in nxt_food_list:
             tmp_score += 1 / float(abs(x - new_x) + abs(y - new_y))
-        if len(nxt_food_list) != 0:
+        nxt_food_list_size = len(nxt_food_list)
+        if nxt_food_list_size != 0:
             tmp_score /= float(len(nxt_food_list))
         final_score += tmp_score
 
         # whether there is a ghost in the next state
         for new_x, new_y in successorGameState.getGhostPositions():
             dist = int(abs(new_x - x) + abs(new_y - y))
-            if dist <= 2:
+            if dist <= 1:
                 final_score += NEXT_GHOST_SCORE
                 break
 
@@ -136,37 +137,30 @@ class MinimaxAgent(MultiAgentSearchAgent):
       Your minimax agent (question 2)
     """
 
-    def is_terminal_state(self, game_state):
-        return game_state.isWin() or game_state.isLose()
+    def is_terminal_state(self, game_state, depth, agent_index):
+        if game_state.isWin() or game_state.isLose() or \
+           depth == self.depth and agent_index == self.num_of_agents - 1:
+            return True
+        return False;
 
     def utility(self, game_state):
         return self.evaluationFunction(game_state)
 
     def minimax(self, game_state, depth, agent_index):
-        if self.is_terminal_state(game_state):
+        if self.is_terminal_state(game_state, depth, agent_index):
             return self.utility(game_state)
-
-        if depth == self.depth and agent_index == self.num_of_agents - 1:
-            return self.evaluationFunction(game_state)
-
-        nxt_agent_index = agent_index + 1
-        nxt_depth = depth
+        nxt_agent_index, nxt_depth = agent_index + 1, depth
         if nxt_agent_index == self.num_of_agents:
             nxt_agent_index = 0
             nxt_depth += 1
         legal_moves = game_state.getLegalActions(agent_index)
         scores = []
         for action in legal_moves:
+            nxt_state = game_state.generateSuccessor(agent_index, action)
             if agent_index == 0 and action == Directions.STOP:
                 scores.append(-5000.0)
-                continue
-            scores.append(
-                self.minimax(
-                    game_state.generateSuccessor(agent_index, action),
-                    nxt_depth,
-                    nxt_agent_index
-                )
-            )
+            else:
+                scores.append(self.minimax(nxt_state, nxt_depth, nxt_agent_index))
         if agent_index == 0:
             return max(scores)
         return min(scores)
