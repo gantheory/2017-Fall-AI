@@ -251,6 +251,34 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
       Your expectimax agent (question 4)
     """
 
+    def is_terminal_state(self, game_state, depth, agent_index):
+        if game_state.isWin() or game_state.isLose() or \
+           depth == self.depth and agent_index == self.num_of_agents - 1:
+            return True
+        return False;
+
+    def utility(self, game_state):
+        return self.evaluationFunction(game_state)
+
+    def minimax(self, game_state, depth, agent_index):
+        if self.is_terminal_state(game_state, depth, agent_index):
+            return self.utility(game_state)
+        nxt_agent_index, nxt_depth = agent_index + 1, depth
+        if nxt_agent_index == self.num_of_agents:
+            nxt_agent_index = 0
+            nxt_depth += 1
+        legal_moves = game_state.getLegalActions(agent_index)
+        scores = []
+        for action in legal_moves:
+            nxt_state = game_state.generateSuccessor(agent_index, action)
+            if agent_index == 0 and action == Directions.STOP:
+                scores.append(-1e9)
+            else:
+                scores.append(self.minimax(nxt_state, nxt_depth, nxt_agent_index))
+        if agent_index == 0:
+            return max(scores)
+        return sum(scores) / float(len(scores))
+
     def getAction(self, gameState):
         """
           Returns the expectimax action using self.depth and self.evaluationFunction
@@ -258,8 +286,15 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        self.num_of_agents = gameState.getNumAgents()
+        legal_moves = gameState.getLegalActions()
+        scores = [self.minimax(gameState.generateSuccessor(0, action), 1, 1) \
+                  for action in legal_moves if action != Directions.STOP]
+        best_score = max(scores)
+        best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
+        chosen_index = random.choice(best_indices)
+        return legal_moves[chosen_index]
 
 def betterEvaluationFunction(currentGameState):
     """
