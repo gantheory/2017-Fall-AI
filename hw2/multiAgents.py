@@ -296,6 +296,28 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         chosen_index = random.choice(best_indices)
         return legal_moves[chosen_index]
 
+def get_distance(currentGameState, ghost_set, dist):
+    sx, sy = currentGameState.getPacmanPosition()
+    directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+    queue = util.Queue()
+    queue.push((sx, sy))
+    all_dist = dict()
+    all_dist[(sx, sy)] = 0
+    while not queue.isEmpty():
+        x, y = queue.pop()
+        now_dist = all_dist[(x, y)]
+        if (x, y) in dist:
+            dist[(x, y)] = now_dist
+        for direction in directions:
+            dx, dy = direction[0], direction[1]
+            new_x, new_y = x + dx, y + dy
+            if (new_x, new_y) in all_dist:
+                continue
+            if currentGameState.hasWall(new_x, new_y) or (new_x, new_y) in ghost_set:
+                continue
+            queue.push((new_x, new_y))
+            all_dist[(new_x, new_y)] = now_dist + 1
+
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
@@ -303,8 +325,40 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    sx, sy = currentGameState.getPacmanPosition()
+    dist = dict()
+    ghost_list = currentGameState.getGhostPositions()
+    ghost_set = set()
+    scared_times = [ghost_state.scaredTimer for ghost_state in currentGameState.getGhostStates()]
+    food_set = set(currentGameState.getFood().asList())
+    capsule_set = set(currentGameState.getCapsules())
+    final_score = 0.0
+
+    # trivially win
+    if currentGameState.isWin():
+        return 1e9
+
+    # get real distance of all foods
+    for i, (x, y) in enumerate(ghost_list):
+        if scared_times[i] < int((abs(sx - x) + abs(sy - y)) / 2):
+            ghost_set.add((int(x), int(y)))
+    for x, y in list(food_set):
+        dist[(x, y)] = 1e9
+    for x, y in list(capsule_set):
+        dist[(x, y)] = 1e9
+    get_distance(currentGameState, ghost_set, dist)
+
+    for pos, dist in dist.iteritems():
+        if pos in food_set:
+            final_score += 1.0 / float(dist)
+        if pos in capsule_set:
+            final_score += 100.0 / float(dist)
+
+    for i, (x, y) in enumerate(ghost_list):
+        if scared_times[i] > 0:
+            final_score += 200.0 / float(abs(sx - x) + abs(sy - y) + 1e-8)
+    return final_score + currentGameState.getScore()
 
 # Abbreviation
 better = betterEvaluationFunction
