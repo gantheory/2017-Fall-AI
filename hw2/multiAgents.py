@@ -158,7 +158,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         for action in legal_moves:
             nxt_state = game_state.generateSuccessor(agent_index, action)
             if agent_index == 0 and action == Directions.STOP:
-                scores.append(-5000.0)
+                scores.append(-1e9)
             else:
                 scores.append(self.minimax(nxt_state, nxt_depth, nxt_agent_index))
         if agent_index == 0:
@@ -187,7 +187,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         scores = [self.minimax(gameState.generateSuccessor(0, action), 1, 1) \
                   for action in legal_moves if action != Directions.STOP]
         best_score = max(scores)
-        print("Initial State Value: ", best_score)
         best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
         chosen_index = random.choice(best_indices)
         return legal_moves[chosen_index]
@@ -197,12 +196,55 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       Your minimax agent with alpha-beta pruning (question 3)
     """
 
+    def is_terminal_state(self, game_state, depth, agent_index):
+        if game_state.isWin() or game_state.isLose() or \
+           depth == self.depth and agent_index == self.num_of_agents - 1:
+            return True
+        return False;
+
+    def utility(self, game_state):
+        return self.evaluationFunction(game_state)
+
+    def alphabeta(self, game_state, depth, agent_index, alpha, beta):
+        if self.is_terminal_state(game_state, depth, agent_index):
+            return self.utility(game_state)
+        nxt_agent_index, nxt_depth = agent_index + 1, depth
+        if nxt_agent_index == self.num_of_agents:
+            nxt_agent_index = 0
+            nxt_depth += 1
+        legal_moves = game_state.getLegalActions(agent_index)
+        if agent_index == 0:
+            v = -1e9
+            for action in legal_moves:
+                nxt_state = game_state.generateSuccessor(agent_index, action)
+                v = max([v, self.alphabeta(nxt_state, nxt_depth, nxt_agent_index, alpha, beta)])
+                if v >= beta:
+                    return v;
+                alpha = max([alpha, v])
+            return v
+        else:
+            v = 1e9
+            for action in legal_moves:
+                nxt_state = game_state.generateSuccessor(agent_index, action)
+                v = min([v, self.alphabeta(nxt_state, nxt_depth, nxt_agent_index, alpha, beta)])
+                if alpha >= v:
+                    return v;
+                beta = min([beta, v])
+            return v
+
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        self.num_of_agents = gameState.getNumAgents()
+        legal_moves = gameState.getLegalActions()
+        scores = [self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9) \
+                  for action in legal_moves if action != Directions.STOP]
+        best_score = max(scores)
+        best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
+        chosen_index = random.choice(best_indices)
+        return legal_moves[chosen_index]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
