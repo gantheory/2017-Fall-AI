@@ -335,10 +335,6 @@ def betterEvaluationFunction(currentGameState):
     capsule_set = set(currentGameState.getCapsules())
     final_score = 0.0
 
-    # trivially win
-    if currentGameState.isWin():
-        return 1e9
-
     # get real distance of all foods
     for i, (x, y) in enumerate(ghost_list):
         if scared_times[i] < int((abs(sx - x) + abs(sy - y)) / 2):
