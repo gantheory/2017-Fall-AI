@@ -187,7 +187,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         scores = []
         for action in legal_moves:
             if action == Directions.STOP:
-                scores.append(-5000.0)
+                scores.append(-1e9)
             else:
                 scores.append(self.minimax(gameState.generateSuccessor(0, action), 1, 1))
         best_score = max(scores)
