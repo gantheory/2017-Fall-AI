@@ -252,7 +252,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             else:
                 scores.append(self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9))
         best_score = max(scores)
-        print('Initial Value: ', best_score)
         best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
         chosen_index = random.choice(best_indices)
         return legal_moves[chosen_index]
