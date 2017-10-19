@@ -184,8 +184,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         self.num_of_agents = gameState.getNumAgents()
         legal_moves = gameState.getLegalActions()
-        scores = [self.minimax(gameState.generateSuccessor(0, action), 1, 1) \
-                  for action in legal_moves if action != Directions.STOP]
+        scores = []
+        for action in legal_moves:
+            if action == Directions.STOP:
+                scores.append(-5000.0)
+            else:
+                scores.append(self.minimax(gameState.generateSuccessor(0, action), 1, 1))
         best_score = max(scores)
         best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
         chosen_index = random.choice(best_indices)
@@ -239,9 +243,16 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         self.num_of_agents = gameState.getNumAgents()
         legal_moves = gameState.getLegalActions()
-        scores = [self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9) \
-                  for action in legal_moves if action != Directions.STOP]
+        # scores = [self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9) \
+        #           for action in legal_moves if action != Directions.STOP]
+        scores = []
+        for action in legal_moves:
+            if action == Directions.STOP:
+                scores.append(-1e9)
+            else:
+                scores.append(self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9))
         best_score = max(scores)
+        print('Initial Value: ', best_score)
         best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
         chosen_index = random.choice(best_indices)
         return legal_moves[chosen_index]
@@ -289,8 +300,12 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
         self.num_of_agents = gameState.getNumAgents()
         legal_moves = gameState.getLegalActions()
-        scores = [self.minimax(gameState.generateSuccessor(0, action), 1, 1) \
-                  for action in legal_moves if action != Directions.STOP]
+        scores = []
+        for action in legal_moves:
+            if action == Directions.STOP:
+                scores.append(-1e9)
+            else:
+                scores.append(self.minimax(gameState.generateSuccessor(0, action), 1, 1))
         best_score = max(scores)
         best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
         chosen_index = random.choice(best_indices)
@@ -337,7 +352,7 @@ def betterEvaluationFunction(currentGameState):
 
     # get real distance of all foods
     for i, (x, y) in enumerate(ghost_list):
-        if scared_times[i] < int((abs(sx - x) + abs(sy - y)) / 2):
+        if scared_times[i] < int((abs(sx - x) + abs(sy - y)) / 2.0):
             ghost_set.add((int(x), int(y)))
     for x, y in list(food_set):
         dist[(x, y)] = 1e9
