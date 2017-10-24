@@ -243,14 +243,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         self.num_of_agents = gameState.getNumAgents()
         legal_moves = gameState.getLegalActions()
-        # scores = [self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9) \
-        #           for action in legal_moves if action != Directions.STOP]
         scores = []
         for action in legal_moves:
-            if action == Directions.STOP:
-                scores.append(-1e9)
-            else:
-                scores.append(self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9))
+            scores.append(self.alphabeta(gameState.generateSuccessor(0, action), 1, 1, -1e9, 1e9))
         best_score = max(scores)
         best_indices = [idx for idx in range(len(scores)) if scores[idx] == best_score]
         chosen_index = random.choice(best_indices)
