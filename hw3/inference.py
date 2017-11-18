@@ -302,7 +302,7 @@ class ParticleFilter(InferenceModule):
             for particle in self.particlesList:
                 trueDistance = util.manhattanDistance(particle, pacmanPosition)
                 if emissionModel[trueDistance] > 0.0:
-                    allPossible[pos] += emissionModel[trueDistance]
+                    allPossible[particle] += emissionModel[trueDistance]
         allPossible.normalize()
         if allPossible.totalCount() == 0.0:
             self.initializeUniformly(gameState)
