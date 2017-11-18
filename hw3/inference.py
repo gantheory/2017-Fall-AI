@@ -259,6 +259,10 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        self.particlesList = []
+        size = float(len(self.legalPositions))
+        for pos in self.legalPositions:
+            self.particlesList.append((pos, float(self.numParticles) / size))
 
     def observe(self, observation, gameState):
         """
@@ -291,7 +295,27 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allPossible = util.Counter()
+        if noisyDistance == None:
+            for p in self.legalPositions:
+                allPossible[p] = 0.0
+            allPossible[self.getJailPosition()] = 1.0
+        else:
+            self.beliefs = self.getBeliefDistribution()
+            for p in self.legalPositions:
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
+                if emissionModel[trueDistance] > 0.0:
+                    allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
+        allPossible.normalize()
+        self.beliefs = allPossible
+
+        if allPossible.totalCount() == 0.0:
+            self.initializeUniformly(gameState)
+            self.beliefs = self.getBeliefDistribution()
+        else: # resample
+            self.particlesList = []
+            for p in self.legalPositions:
+                self.particlesList.append((p, self.beliefs[p] * float(self.numParticles)))
 
     def elapseTime(self, gameState):
         """
@@ -318,7 +342,11 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.beliefs = util.Counter()
+        for pos, num in self.particlesList:
+            self.beliefs[pos] = num
+        self.beliefs.normalize()
+        return self.beliefs
 
 class MarginalInference(InferenceModule):
     """
