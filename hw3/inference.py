@@ -260,9 +260,9 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         self.particlesList = []
-        size = float(len(self.legalPositions))
-        for pos in self.legalPositions:
-            self.particlesList.append((pos, float(self.numParticles) / size))
+        size = len(self.legalPositions)
+        for counter in range(self.numParticles):
+            self.particlesList.append(self.legalPositions[counter % size])
 
     def observe(self, observation, gameState):
         """
@@ -312,10 +312,10 @@ class ParticleFilter(InferenceModule):
         if allPossible.totalCount() == 0.0:
             self.initializeUniformly(gameState)
             self.beliefs = self.getBeliefDistribution()
-        else: # resample
+        else:
             self.particlesList = []
-            for p in self.legalPositions:
-                self.particlesList.append((p, self.beliefs[p] * float(self.numParticles)))
+            for counter in range(self.numParticles):
+                self.particlesList.append(util.sample(self.beliefs))
 
     def elapseTime(self, gameState):
         """
@@ -341,9 +341,12 @@ class ParticleFilter(InferenceModule):
         allPossible.normalize()
         self.beliefs = allPossible
 
+        # self.particlesList = []
+        # for p in self.legalPositions:
+        #     self.particlesList.append((p, self.beliefs[p] * float(self.numParticles)))
         self.particlesList = []
-        for p in self.legalPositions:
-            self.particlesList.append((p, self.beliefs[p] * float(self.numParticles)))
+        for counter in range(self.numParticles):
+            self.particlesList.append(util.sample(self.beliefs))
 
     def getBeliefDistribution(self):
         """
@@ -354,8 +357,8 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         self.beliefs = util.Counter()
-        for pos, num in self.particlesList:
-            self.beliefs[pos] = num
+        for pos in self.particlesList:
+            self.beliefs[pos] += 1
         self.beliefs.normalize()
         return self.beliefs
 
