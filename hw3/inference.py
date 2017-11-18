@@ -341,9 +341,6 @@ class ParticleFilter(InferenceModule):
         allPossible.normalize()
         self.beliefs = allPossible
 
-        # self.particlesList = []
-        # for p in self.legalPositions:
-        #     self.particlesList.append((p, self.beliefs[p] * float(self.numParticles)))
         self.particlesList = []
         for counter in range(self.numParticles):
             self.particlesList.append(util.sample(self.beliefs))
