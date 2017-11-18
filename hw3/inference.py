@@ -299,13 +299,11 @@ class ParticleFilter(InferenceModule):
         if noisyDistance == None:
             allPossible[self.getJailPosition()] = 1.0
         else:
-            self.beliefs = self.getBeliefDistribution()
-            for pos in self.beliefs:
-                trueDistance = util.manhattanDistance(pos, pacmanPosition)
+            for particle in self.particlesList:
+                trueDistance = util.manhattanDistance(particle, pacmanPosition)
                 if emissionModel[trueDistance] > 0.0:
-                    allPossible[pos] = emissionModel[trueDistance] * self.beliefs[pos]
+                    allPossible[pos] += emissionModel[trueDistance]
         allPossible.normalize()
-
         if allPossible.totalCount() == 0.0:
             self.initializeUniformly(gameState)
             allPossible = self.getBeliefDistribution()
@@ -482,6 +480,27 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        allPossible = util.Counter()
+        for particle in self.particlesList:
+            prob = 1.0
+            for i in range(self.numGhosts):
+                noisyDistance = noisyDistances[i]
+                emissionModel = emissionModels[i]
+                if noisyDistance == None:
+                    allPossible[self.getParticleWithGhostInJail(particle, i)] += 1.0
+                else:
+                    trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
+                    prob *= emissionModel[trueDistance]
+            allPossible[particle] += prob
+        allPossible.normalize()
+        if allPossible.totalCount() == 0.0:
+            self.initializeParticles()
+            allPossible = self.getBeliefDistribution()
+        else:
+            self.particlesList = []
+            for counter in range(self.numParticles):
+                self.particlesList.append(util.sample(allPossible))
+        self.beliefs = allPossible
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
