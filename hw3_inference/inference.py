@@ -420,8 +420,8 @@ class JointParticleFilter:
         """
         "*** YOUR CODE HERE ***"
         self.particles= []
+        products = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
         while len(self.particles) < self.numParticles:
-            products = itertools.product(self.legalPositions, repeat=self.numGhosts)
             for p in products:
                 self.particles.append(p)
         random.shuffle(self.particles)
@@ -474,16 +474,18 @@ class JointParticleFilter:
 
         "*** YOUR CODE HERE ***"
         allPossible = util.Counter()
-        for index, particle in self.particles:
-            for i in range(self.numGhosts):
-                noisyDistance = noisyDistances[i]
-                emissionModel = emissionModels[i]
-                if noisyDistance == None:
+        for i in range(self.numGhosts):
+            noisyDistance = noisyDistances[i]
+            emissionModel = emissionModels[i]
+            if noisyDistance == None:
+                for index, particle in enumerate(self.particles):
                     self.particles[index] = self.getParticleWithGhostInJail(particle, i)
         for particle in self.particles:
             prob = 1.0
             for i in range(self.numGhosts):
                 noisyDistance = noisyDistances[i]
+                if noisyDistance == None:
+                    continue
                 emissionModel = emissionModels[i]
                 trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
                 prob *= emissionModel[trueDistance]
