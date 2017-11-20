@@ -481,10 +481,10 @@ def foodHeuristic(state, problem):
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
     lst = foodGrid.asList()
-    dis = -1
+    dis = 0
     for now_state in lst:
         now_dis = mazeDistance(position, now_state, problem.startingGameState)
-        if dis == -1 or now_dis > dis:
+        if dis == 0 or now_dis > dis:
            dis = now_dis
     return dis
 
