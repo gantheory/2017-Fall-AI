@@ -60,6 +60,7 @@ def question3e(): #living earns reward->stuck
     # If not possible, return 'NOT POSSIBLE'
 
 def question6():
+    return 'NOT POSSIBLE'
     answerEpsilon = None
     answerLearningRate = None
     return answerEpsilon, answerLearningRate
