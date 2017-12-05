@@ -125,7 +125,7 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        self.Q_values[state][action] = (1 - self.alpha) * self.Q_values[state][action] + \
+        self.Q_values[state][action] = (1 - self.alpha) * self.getQValue(state, action) + \
                                        self.alpha * (reward + self.discount * self.getValue(nextState))
 
     def getPolicy(self, state):
@@ -190,7 +190,11 @@ class ApproximateQAgent(PacmanQAgent):
         """
         # Use self.featExtractor.getFeatures(state,action) to get the features
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        features = self.featExtractor.getFeatures(state, action)
+        Q_value = 0.0
+        for feature in features:
+            Q_value += features[feature] * self.weights[feature]
+        return Q_value
 
     def update(self, state, action, nextState, reward):
         """
@@ -198,7 +202,10 @@ class ApproximateQAgent(PacmanQAgent):
         """
         # You may use self.getLegalActions(state) and self.getQValue(state,action)
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        features = self.featExtractor.getFeatures(state, action)
+        difference = (reward + self.discount * self.getValue(nextState)) - self.getQValue(state, action)
+        for feature in self.weights:
+           self.weights[feature] += self.alpha * difference * features[feature]
 
     def final(self, state):
         "Called at the end of each game."
