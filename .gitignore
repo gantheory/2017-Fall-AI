@@ -4,3 +4,10 @@ slides/*
 .zshrc
 .vscode/*
 tags
+autograder.py
+autograder.sh
+grading.py
+reinforcementTestClasses.py
+testClasses.py
+testParser.py
+test_cases/
