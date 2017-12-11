@@ -11,3 +11,10 @@ reinforcementTestClasses.py
 testClasses.py
 testParser.py
 test_cases/
+final/*
+final_project/Makefile
+final_project/*.tsv
+final_project/*.csv
+final_project/*.txt
+final_project/train/*
+final_project/test/*
