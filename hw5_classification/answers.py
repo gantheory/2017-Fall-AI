@@ -17,3 +17,4 @@ def q2():
     return 'a' or 'b'
     """
     "*** YOUR CODE HERE ***"
+    return 'a'
