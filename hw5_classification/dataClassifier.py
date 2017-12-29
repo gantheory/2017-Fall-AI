@@ -81,9 +81,97 @@ def enhancedFeatureExtractorDigit(datum):
     features =  basicFeatureExtractorDigit(datum)
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visit = util.Counter()
+    num_of_components = 0
+    for x in range(DIGIT_DATUM_WIDTH):
+        for y in range(DIGIT_DATUM_HEIGHT):
+            if visit[(x, y)] == 0 and datum.getPixel(x, y) == 0:
+                num_of_components += 1
+                q = util.Queue()
+                q.push((x, y))
+                visit[(x, y)] = 1
+                while not q.isEmpty():
+                    nowx, nowy = q.pop()
+                    if nowx >= 1 and visit[(nowx - 1, nowy)] == 0 and datum.getPixel(nowx - 1, nowy) == 0:
+                        q.push((nowx - 1, nowy))
+                        visit[(nowx - 1, nowy)] = 1
+                    if nowx <= DIGIT_DATUM_WIDTH - 2 and visit[(nowx + 1, nowy)] == 0 and datum.getPixel(nowx + 1, nowy) == 0:
+                        q.push((nowx + 1, nowy))
+                        visit[(nowx + 1, nowy)] = 1
+                    if nowy >= 1 and visit[(nowx, nowy - 1)] == 0 and datum.getPixel(nowx, nowy - 1) == 0:
+                        q.push((nowx, nowy - 1))
+                        visit[(nowx, nowy - 1)] = 1
+                    if nowy <= DIGIT_DATUM_HEIGHT - 2 and visit[(nowx, nowy + 1)] == 0 and datum.getPixel(nowx, nowy + 1) == 0:
+                        q.push((nowx, nowy + 1))
+                        visit[(nowx, nowy + 1)] = 1
+    num = [0, 0, 0]
+    num[min([num_of_components - 1, len(num) - 1])] = 1
+    for i in range(len(num)):
+        features[str(i)] = num[i]
+
+    template = [[2, 2, 2, 2],
+                [2, 2, 2, 2],
+                [2, 2, 0, 0],
+                [2, 2, 0, 0]]
+    mn = 1000000000
+    for x in range(DIGIT_DATUM_WIDTH - 4):
+        for y in range(DIGIT_DATUM_HEIGHT - 4):
+            tmp_sum = 0
+            for i in range(4):
+                for j in range(4):
+                    tmp_sum += abs(datum.getPixel(x + i, y + j)- template[i][j])
+            if tmp_sum < mn:
+                mn = tmp_sum
+    features['template'] = 0
+    if mn <= 5:
+        features['template'] = 1
+
+    num = 0
+    total_cut = 1
+    for cut in range(1, total_cut + 1):
+        for i in range(DIGIT_DATUM_WIDTH):
+            num += datum.getPixel(i, int(DIGIT_DATUM_HEIGHT / float(total_cut + 1) * float(cut))) > 0
+        for i in range(1, 11):
+            features[('cut', 'h', cut, i)] = num > int(DIGIT_DATUM_WIDTH / float(total_cut + 1) * float(cut) * float(i) / 10.0)
+
+    num = 0
+    total_cut = 1
+    for cut in range(1, total_cut + 1):
+        for i in range(DIGIT_DATUM_HEIGHT):
+            num += datum.getPixel(int(DIGIT_DATUM_WIDTH / float(total_cut + 1) * float(cut)), i) > 0
+        for i in range(1, 11):
+            features[('cut', 'v', cut, i)] = num > int(DIGIT_DATUM_WIDTH / float(total_cut + 1) * float(cut) * float(i) / 10.0)
+
+    for y in range(DIGIT_DATUM_HEIGHT):
+        num = 0
+        for x in range(1, DIGIT_DATUM_WIDTH):
+            prv = datum.getPixel(x - 1, y)
+            if prv > 0:
+                prv = 1
+            now = datum.getPixel(x, y)
+            if now > 0:
+                now = 1
+            num += (now + prv) == 1
+        features[('h', y, 0)] = 0 <= num < 2
+        features[('h', y, 1)] = 2 <= num < 4
+        features[('h', y, 2)] = 4 <= num < 6
+
+    for x in range(DIGIT_DATUM_WIDTH):
+        num = 0
+        for y in range(1, DIGIT_DATUM_HEIGHT):
+            prv = datum.getPixel(x, y - 1)
+            if prv > 0:
+                prv = 1
+            now = datum.getPixel(x, y)
+            if now > 0:
+                now = 1
+            num += (now + prv) == 1
+        features[('v', x, 0)] = 0 <= num < 2
+        features[('v', x, 1)] = 2 <= num < 4
+        features[('v', x, 2)] = 4 <= num < 6
 
     return features
+enhancedFeatureExtractorDigit.counter = util.Counter()
 
 
 
