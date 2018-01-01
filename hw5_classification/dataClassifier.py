@@ -109,23 +109,6 @@ def enhancedFeatureExtractorDigit(datum):
     for i in range(len(num)):
         features[str(i)] = num[i]
 
-    template = [[2, 2, 2, 2],
-                [2, 2, 2, 2],
-                [2, 2, 0, 0],
-                [2, 2, 0, 0]]
-    mn = 1000000000
-    for x in range(DIGIT_DATUM_WIDTH - 4):
-        for y in range(DIGIT_DATUM_HEIGHT - 4):
-            tmp_sum = 0
-            for i in range(4):
-                for j in range(4):
-                    tmp_sum += abs(datum.getPixel(x + i, y + j)- template[i][j])
-            if tmp_sum < mn:
-                mn = tmp_sum
-    features['template'] = 0
-    if mn <= 5:
-        features['template'] = 1
-
     num = 0
     total_cut = 1
     for cut in range(1, total_cut + 1):
@@ -171,7 +154,7 @@ def enhancedFeatureExtractorDigit(datum):
         features[('v', x, 2)] = 4 <= num < 6
 
     return features
-enhancedFeatureExtractorDigit.counter = util.Counter()
+enhancedFeatureExtractorDigit.counter = 0
 
 
 
@@ -208,6 +191,50 @@ def enhancedFeatureExtractorPacman(state):
         features[action] = util.Counter(features[action], **enhancedPacmanFeatures(state, action))
     return features, state.getLegalActions()
 
+def get_distance(currentGameState, ghost_set, dist):
+    sx, sy = currentGameState.getPacmanPosition()
+    directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+    queue = util.Queue()
+    queue.push((sx, sy))
+    all_dist = dict()
+    all_dist[(sx, sy)] = 0
+    while not queue.isEmpty():
+        x, y = queue.pop()
+        now_dist = all_dist[(x, y)]
+        if (x, y) in dist:
+            dist[(x, y)] = now_dist
+        for direction in directions:
+            dx, dy = direction[0], direction[1]
+            new_x, new_y = x + dx, y + dy
+            if (new_x, new_y) in all_dist:
+                continue
+            if currentGameState.hasWall(new_x, new_y) or (new_x, new_y) in ghost_set:
+                continue
+            queue.push((new_x, new_y))
+            all_dist[(new_x, new_y)] = now_dist + 1
+
+def get_distance2(currentGameState, dist):
+    sx, sy = currentGameState.getPacmanPosition()
+    directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+    queue = util.Queue()
+    queue.push((sx, sy))
+    all_dist = dict()
+    all_dist[(sx, sy)] = 0
+    while not queue.isEmpty():
+        x, y = queue.pop()
+        now_dist = all_dist[(x, y)]
+        if (x, y) in dist:
+            dist[(x, y)] = now_dist
+        for direction in directions:
+            dx, dy = direction[0], direction[1]
+            new_x, new_y = x + dx, y + dy
+            if (new_x, new_y) in all_dist:
+                continue
+            if currentGameState.hasWall(new_x, new_y):
+                continue
+            queue.push((new_x, new_y))
+            all_dist[(new_x, new_y)] = now_dist + 1
+
 def enhancedPacmanFeatures(state, action):
     """
     For each state, this function is called with each legal action.
@@ -220,7 +247,47 @@ def enhancedPacmanFeatures(state, action):
     """
     features = util.Counter()
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    successor = state.generateSuccessor(0, action)
+    features['current_score'] = successor.getScore()
+
+    sx, sy = successor.getPacmanPosition()
+    dist = dict()
+    ghost_list = successor.getGhostPositions()
+    ghost_set = set()
+    scared_times = [ghost_state.scaredTimer for ghost_state in successor.getGhostStates()]
+    food_set = set(successor.getFood().asList())
+    capsule_set = set(successor.getCapsules())
+
+    # get real distance of all foods
+    for i, (x, y) in enumerate(ghost_list):
+        if scared_times[i] < int((abs(sx - x) + abs(sy - y)) / 2.0):
+            ghost_set.add((int(x), int(y)))
+    for x, y in list(food_set):
+        dist[(x, y)] = 1e9
+    for x, y in list(capsule_set):
+        dist[(x, y)] = 1e9
+    get_distance(successor, ghost_set, dist)
+
+    for pos, dist in dist.iteritems():
+        if pos in food_set:
+            features['food_score'] += 1.0 / float(dist) # 30
+        if pos in capsule_set:
+            features['capsule_score'] += 100.0 / float(dist)
+
+    for i, (x, y) in enumerate(ghost_list):
+        if scared_times[i] > 0:
+            features['scared_score'] += 50.0 / float(abs(sx - x) + abs(sy - y) + 1e-8) # 50
+            features['scared_score2'] += 40.0 / float(abs(sx - x) + abs(sy - y) + 1e-8) # 50
+            features['scared_score3'] += 30.0 / float(abs(sx - x) + abs(sy - y) + 1e-8) # 50
+
+    ghost_dist = dict()
+    for pos in ghost_list:
+        ghost_dist[pos] = 0.0
+    get_distance2(successor, ghost_dist)
+    for pos, dist in ghost_dist.iteritems():
+        features['ghost_dist'] += float(dist) * 10.0
+        features['ghost_dist2'] += float(dist) * 10.0
+
     return features
 
 
@@ -262,16 +329,17 @@ def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage)
 
     # Put any code here...
     # Example of use:
-    # for i in range(len(guesses)):
-    #     prediction = guesses[i]
-    #     truth = testLabels[i]
-    #     if (prediction != truth):
-    #         print "==================================="
-    #         print "Mistake on example %d" % i
-    #         print "Predicted %d; truth is %d" % (prediction, truth)
-    #         print "Image: "
-    #         print rawTestData[i]
-    #         break
+    return
+    for i in range(len(guesses)):
+        prediction = guesses[i]
+        truth = testLabels[i]
+        if (prediction != truth):
+            print "==================================="
+            print "Mistake on example %d" % i
+            print "Predicted %s; truth is %s" % (prediction, truth)
+            print "Image: "
+            print rawTestData[i]
+            # break
 
 
 ## =====================
