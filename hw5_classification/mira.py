@@ -89,7 +89,7 @@ class MiraClassifier:
 
                     if predictLabel != nowLabel:
                         numerator = (self.weights[predictLabel] - self.weights[nowLabel]) * nowData + 1.0
-                        denominator = 2.0 * ((nowData * nowData) ** 0.5)
+                        denominator = 2.0 * (nowData * nowData)
                         tau = min([C, numerator / denominator])
 
                         for key in nowData:
