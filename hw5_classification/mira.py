@@ -88,8 +88,9 @@ class MiraClassifier:
                     predictLabel = nowScore.argMax()
 
                     if predictLabel != nowLabel:
-                        numerator = (self.weights[predictLabel] - self.weights[nowLabel]) * nowData + 1.0
-                        denominator = 2.0 * (nowData * nowData)
+                        nowData = trainingData[j].copy()
+                        numerator = float((self.weights[predictLabel] - self.weights[nowLabel]) * nowData) + 1.0
+                        denominator = 2.0 * float(nowData * nowData)
                         tau = min([C, numerator / denominator])
 
                         for key in nowData:
@@ -113,7 +114,8 @@ class MiraClassifier:
         for i in range(len(guessRight)):
             if guessRight[i] == best:
                 self.weights = classifiers[i]
-                return
+                self.C = Cgrid[i]
+                return Cgrid[i]
 
     def classify(self, data ):
         """
