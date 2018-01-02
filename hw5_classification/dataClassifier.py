@@ -36,8 +36,8 @@ FACE_DATUM_HEIGHT=70
 
 # Author: Jean KOSSAIFI <jean.kossaifi@gmail.com>
 
-import numpy as np
-from numpy import arctan2, fliplr, flipud
+# import numpy as np
+# from numpy import arctan2, fliplr, flipud
 
 def gradient(image, same_size=False):
     """ Computes the Gradients of the image separated pixel difference
@@ -62,6 +62,7 @@ def gradient(image, same_size=False):
     (Gradient X, Gradient Y), two numpy array with the same shape as image
         (if same_size=True)
     """
+    import numpy as np
     sy, sx = image.shape
     if same_size:
         gx = np.zeros(image.shape)
@@ -100,6 +101,8 @@ def magnitude_orientation(gx, gy):
     -------
     The orientation is in degree, NOT radian!!
     """
+    import numpy as np
+    from numpy import arctan2
 
     magnitude = np.sqrt(gx**2 + gy**2)
     orientation = (arctan2(gy, gx) * 180 / np.pi) % 360
@@ -144,6 +147,8 @@ def compute_coefs(csx, csy, dx, dy, n_cells_x, n_cells_y):
 
     then you rotate the coefs and do the same thing for every part of the image
     """
+    import numpy as np
+    from numpy import fliplr, flipud
     if csx != csy:
         raise NotImplementedError("For now compute_coefs is only implemented for squared cells (csx == csy)")
 
@@ -207,6 +212,7 @@ def interpolate_orientation(orientation, sx, sy, nbins, signed_orientation):
             contains the pre histogram of orientation built using linear interpolation
             to interpolate the orientations to their bins
     """
+    import numpy as np
 
     if signed_orientation:
         max_angle = 360
@@ -302,6 +308,7 @@ def interpolate(magnitude, orientation, csx, csy, sx, sy, n_cells_x, n_cells_y, 
     orientation_histogram: array of shape (n_cells_x, n_cells_y, nbins)
             contains the histogram of orientation built using tri-linear interpolation
     """
+    import numpy as np
 
     dx = csx//2
     dy = csy//2
@@ -342,6 +349,7 @@ def draw_histogram(hist, csx, csy, signed_orientation=False):
     """ simple function to draw an orientation histogram
         with arrows
     """
+    import numpy as np
     import matplotlib.pyplot as plt
 
     if signed_orientation:
@@ -393,6 +401,7 @@ def visualise_histogram(hist, csx, csy, signed_orientation=False):
     ------
     Image of shape (hist.shape[0]*csy, hist.shape[1]*csx)
     """
+    import numpy as np
     from skimage import draw
 
     if signed_orientation:
@@ -441,6 +450,7 @@ def normalise_histogram(orientation_histogram, bx, by, n_cells_x, n_cells_y, nbi
     In other words the histogram is first normalised block-wise using l2 norm, before clipping it by
         limiting the values between 0 and 0.02 and finally normalising again with l2 norm
     """
+    import numpy as np
     eps = 1e-7
 
     if bx==1 and by==1: #faster version
@@ -698,6 +708,7 @@ def enhancedFeatureExtractorDigit(datum):
     features =  basicFeatureExtractorDigit(datum)
 
     "*** YOUR CODE HERE ***"
+    import numpy as np
     data = []
     for y in range(DIGIT_DATUM_HEIGHT):
         tmp = []
