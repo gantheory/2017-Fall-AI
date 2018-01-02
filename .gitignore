@@ -18,3 +18,10 @@ final_project/*.csv
 final_project/*.txt
 final_project/train/*
 final_project/test/*
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.xdv
